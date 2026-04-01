@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Fetch API CRUD</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #ff9800; color: white; }
+        .form-container { margin-bottom: 20px; padding: 15px; background: #fff3e0; }
+        input { padding: 5px; margin-right: 5px; margin-bottom: 5px; }
+    </style>
+</head>
+<body>
+    <h2>Fetch API CRUD (Szerveroldali adatbázissal)</h2>
+    <a href="index.html">Vissza a főoldalra</a>
+
+    <div class="form-container">
+        <h3>Új mozi hozzáadása / Szerkesztés</h3>
+        <input type="number" id="moziazon" placeholder="Mozi Azonosító (pl. 100)" required>
+        <input type="text" id="mozinev" placeholder="Név" required>
+        <input type="number" id="irszam" placeholder="Irányítószám">
+        <input type="text" id="cim" placeholder="Cím">
+        <input type="text" id="telefon" placeholder="Telefon">
+        <button onclick="saveData('POST')">Új Mentése</button>
+        <button onclick="saveData('PUT')">Kiválasztott Frissítése</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr><th>Azonosító</th><th>Név</th><th>Irszám</th><th>Cím</th><th>Telefon</th><th>Műveletek</th></tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+    </table>
+
+    <script>
+        const API_URL = 'api.php';
+
+        async function loadData() {
+            const response = await fetch(API_URL);
+            const data = await response.json();
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = '';
+            data.forEach(item => {
+                tbody.innerHTML += `
+                    <tr>
+                        <td>${item.moziazon}</td><td>${item.mozinev}</td><td>${item.irszam}</td><td>${item.cim}</td><td>${item.telefon}</td>
+                        <td>
+                            <button onclick="fillForm(${item.moziazon}, '${item.mozinev}', '${item.irszam}', '${item.cim}', '${item.telefon}')">Kiválaszt</button>
+                            <button onclick="deleteData(${item.moziazon})">Törlés</button>
+                        </td>
+                    </tr>`;
+            });
+        }
+
+        async function saveData(method) {
+            const data = {
+                moziazon: document.getElementById('moziazon').value,
+                mozinev: document.getElementById('mozinev').value,
+                irszam: document.getElementById('irszam').value,
+                cim: document.getElementById('cim').value,
+                telefon: document.getElementById('telefon').value
+            };
+
+            await fetch(API_URL, {
+                method: method,
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+            loadData();
+        }
+
+        async function deleteData(id) {
+            if (confirm("Biztosan törlöd?")) {
+                await fetch(`${API_URL}?id=${id}`, { method: 'DELETE' });
+                loadData();
+            }
+        }
+
+        function fillForm(id, nev, irszam, cim, telefon) {
+            document.getElementById('moziazon').value = id;
+            document.getElementById('mozinev').value = nev;
+            document.getElementById('irszam').value = irszam;
+            document.getElementById('cim').value = cim;
+            document.getElementById('telefon').value = telefon;
+        }
+
+        loadData();
+    </script>
+</body>
+</html>
