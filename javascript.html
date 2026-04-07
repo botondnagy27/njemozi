@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JavaScript CRUD - Mozik</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #4CAF50; color: white; }
+        .form-container { margin-bottom: 20px; padding: 15px; background: #eee; }
+        input { padding: 5px; margin-right: 10px; }
+        button { padding: 5px 10px; cursor: pointer; }
+    </style>
+</head>
+<body>
+
+    <h2>JavaScript CRUD (Mozi adatok)</h2>
+    <a href="index.html">Vissza a főoldalra</a>
+
+    <div class="form-container">
+        <h3 id="formTitle">Új mozi hozzáadása</h3>
+        <input type="hidden" id="moziId">
+        <input type="text" id="moziNev" placeholder="Mozi neve" required>
+        <input type="text" id="irszam" placeholder="Irányítószám" required>
+        <input type="text" id="cim" placeholder="Cím" required>
+        <input type="text" id="telefon" placeholder="Telefon">
+        <button onclick="saveMozi()">Mentés</button>
+        <button onclick="clearForm()">Mégse</button>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Név</th>
+                <th>Irszám</th>
+                <th>Cím</th>
+                <th>Telefon</th>
+                <th>Műveletek</th>
+            </tr>
+        </thead>
+        <tbody id="moziTableBody">
+            </tbody>
+    </table>
+
+    <script>
+        // Adatok tárolása tömbben a feladat szerint (mozi.txt alapján)
+        let moziData = [
+            { id: 1, nev: "A38 Hajó", irszam: "1113", cim: "Petőfi híd budai hídfő", telefon: "4643940" },
+            { id: 2, nev: "Bárka Kikötő a Ráday utcában", irszam: "1092", cim: "Ráday utca", telefon: "" },
+            { id: 3, nev: "Bem", irszam: "1024", cim: "Margit krt. 5/b.", telefon: "3168708" },
+            { id: 4, nev: "Budapesti Európai Ifjúsági Központ", irszam: "1024", cim: "Zivatar u. 1-3.", telefon: "2124080" }
+        ];
+
+        let editMode = false;
+
+        // READ: Táblázat kirajzolása
+        function renderTable() {
+            const tbody = document.getElementById('moziTableBody');
+            tbody.innerHTML = '';
+            moziData.forEach(mozi => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td>${mozi.id}</td>
+                    <td>${mozi.nev}</td>
+                    <td>${mozi.irszam}</td>
+                    <td>${mozi.cim}</td>
+                    <td>${mozi.telefon}</td>
+                    <td>
+                        <button onclick="editMozi(${mozi.id})">Szerkesztés (U)</button>
+                        <button onclick="deleteMozi(${mozi.id})">Törlés (D)</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        // CREATE & UPDATE: Mentés gomb logikája
+        function saveMozi() {
+            const idInput = document.getElementById('moziId').value;
+            const nev = document.getElementById('moziNev').value;
+            const irszam = document.getElementById('irszam').value;
+            const cim = document.getElementById('cim').value;
+            const telefon = document.getElementById('telefon').value;
+
+            if (!nev || !irszam || !cim) {
+                alert("Név, irszam és cím kötelező!");
+                return;
+            }
+
+            if (editMode && idInput) {
+                // UPDATE
+                const index = moziData.findIndex(m => m.id == idInput);
+                if (index !== -1) {
+                    moziData[index] = { id: parseInt(idInput), nev, irszam, cim, telefon };
+                }
+            } else {
+                // CREATE
+                const newId = moziData.length > 0 ? Math.max(...moziData.map(m => m.id)) + 1 : 1;
+                moziData.push({ id: newId, nev, irszam, cim, telefon });
+            }
+
+            clearForm();
+            renderTable();
+        }
+
+        // DELETE: Elem törlése
+        function deleteMozi(id) {
+            if (confirm("Biztosan törlöd ezt a mozit?")) {
+                moziData = moziData.filter(mozi => mozi.id !== id);
+                renderTable();
+            }
+        }
+
+        // Szerkesztési mód aktiválása
+        function editMozi(id) {
+            const mozi = moziData.find(m => m.id === id);
+            if (mozi) {
+                document.getElementById('moziId').value = mozi.id;
+                document.getElementById('moziNev').value = mozi.nev;
+                document.getElementById('irszam').value = mozi.irszam;
+                document.getElementById('cim').value = mozi.cim;
+                document.getElementById('telefon').value = mozi.telefon;
+                
+                document.getElementById('formTitle').innerText = "Mozi szerkesztése";
+                editMode = true;
+            }
+        }
+
+        // Form ürítése
+        function clearForm() {
+            document.getElementById('moziId').value = '';
+            document.getElementById('moziNev').value = '';
+            document.getElementById('irszam').value = '';
+            document.getElementById('cim').value = '';
+            document.getElementById('telefon').value = '';
+            document.getElementById('formTitle').innerText = "Új mozi hozzáadása";
+            editMode = false;
+        }
+
+        // Kezdeti kirajzolás
+        renderTable();
+    </script>
+</body>
+</html>
