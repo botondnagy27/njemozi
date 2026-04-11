@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React SPA</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        .spa-nav { background-color: #333; padding: 10px; margin-bottom: 20px; }
+        .spa-nav button { background: none; color: white; border: none; font-size: 16px; cursor: pointer; margin-right: 15px; font-weight: bold; }
+        .spa-nav button:hover { color: #ffeb3b; }
+        .app-container { padding: 20px; border: 1px solid #ccc; background: #f9f9f9; }
+        .todo-item { display: flex; justify-content: space-between; margin-bottom: 5px; background: #fff; padding: 5px; border: 1px solid #eee;}
+    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+</head>
+<body>
+
+    <h2>React Egyoldalas Alkalmazás (SPA)</h2>
+    <a href="index.html">Vissza a főoldalra</a>
+    
+    
+    <div id="root" style="margin-top: 20px;"></div>
+
+    <script>
+        const e = React.createElement;
+
+        // 1. Alkalmazás: Számláló / Mini Kalkulátor
+        function CounterApp() {
+            const [count, setCount] = React.useState(0);
+
+            return e('div', { className: 'app-container' },
+                e('h3', null, 'Mini Számláló'),
+                e('h1', null, count),
+                e('button', { onClick: () => setCount(count + 1), style: { padding: '10px', margin: '5px' } }, '+1 Hozzáadás'),
+                e('button', { onClick: () => setCount(count - 1), style: { padding: '10px', margin: '5px' } }, '-1 Kivonás'),
+                e('button', { onClick: () => setCount(0), style: { padding: '10px', margin: '5px' } }, 'Nullázás')
+            );
+        }
+
+        // 2. Alkalmazás: Egyszerű Teendőlista (To-Do)
+        function TodoApp() {
+            const [tasks, setTasks] = React.useState(['Dokumentáció megírása', 'GitHub feltöltés']);
+            const [inputValue, setInputValue] = React.useState('');
+
+            const addTask = () => {
+                if (inputValue.trim() !== '') {
+                    setTasks([...tasks, inputValue]);
+                    setInputValue('');
+                }
+            };
+
+            const removeTask = (indexToRemove) => {
+                setTasks(tasks.filter((_, index) => index !== indexToRemove));
+            };
+
+            const taskElements = tasks.map((task, index) => 
+                e('div', { key: index, className: 'todo-item' },
+                    e('span', null, task),
+                    e('button', { onClick: () => removeTask(index) }, 'Kész')
+                )
+            );
+
+            return e('div', { className: 'app-container' },
+                e('h3', null, 'Teendőlista (To-Do)'),
+                e('input', { 
+                    type: 'text', 
+                    value: inputValue, 
+                    onChange: (ev) => setInputValue(ev.target.value),
+                    placeholder: 'Új feladat...',
+                    style: { padding: '5px', marginRight: '5px' }
+                }),
+                e('button', { onClick: addTask, style: { padding: '5px' } }, 'Hozzáad'),
+                e('div', { style: { marginTop: '15px' } }, taskElements)
+            );
+        }
+
+        // SPA Főkomponens - Menükezelés
+        function SpaApp() {
+            const [currentView, setCurrentView] = React.useState('counter'); // 'counter' vagy 'todo'
+
+            const nav = e('div', { className: 'spa-nav' },
+                e('button', { onClick: () => setCurrentView('counter') }, '1. Alkalmazás (Számláló)'),
+                e('button', { onClick: () => setCurrentView('todo') }, '2. Alkalmazás (Teendőlista)')
+            );
+
+            const activeComponent = currentView === 'counter' ? e(CounterApp) : e(TodoApp);
+
+            return e('div', null, nav, activeComponent);
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(e(SpaApp));
+    </script>
+</body>
+</html>

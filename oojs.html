@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OOJS - Pattogó Labdák</title>
+    <style>
+        body { 
+            font-family: Arial, sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            background-color: #222; 
+            color: white; 
+            overflow: hidden; /* Ne legyen görgetősáv a pattogó labdák miatt */
+        }
+        .nav-container {
+            padding: 20px;
+            background-color: rgba(0, 0, 0, 0.7);
+            position: relative;
+            z-index: 10;
+        }
+        a { color: #4CAF50; text-decoration: none; font-weight: bold; }
+        a:hover { color: #81c784; }
+    </style>
+</head>
+<body>
+
+    <div class="nav-container">
+        <h2>OOJS Grafikus Alkalmazás (Pattogó labdák)</h2>
+        <a href="index.html">Vissza a főoldalra</a>
+        <p>Kattints a képernyőre új labda hozzáadásához!</p>
+    </div>
+
+    <script>
+        // 1. Alaposztály: Alakzat (Shape)
+        class Shape {
+            // constructor használata
+            constructor(x, y, color) {
+                this.x = x;
+                this.y = y;
+                this.color = color;
+                
+                // HTML elem létrehozása
+                this.element = document.createElement('div');
+                this.element.style.position = 'absolute';
+                this.element.style.backgroundColor = this.color;
+            }
+
+            // Metódus: Kirajzolás a képernyőre
+            draw() {
+                this.element.style.left = this.x + 'px';
+                this.element.style.top = this.y + 'px';
+                
+                // Kötelező elem: document.body.appendChild
+                document.body.appendChild(this.element);
+            }
+        }
+
+        // 2. Származtatott osztály: Pattogó Kör (BouncingCircle) - extends használata
+        class BouncingCircle extends Shape {
+            constructor(x, y, size, color, speedX, speedY) {
+                // super használata az ősosztály konstruktorának hívásához
+                super(x, y, color);
+                
+                this.size = size;
+                this.speedX = speedX;
+                this.speedY = speedY;
+                
+                // Kör stílusok beállítása
+                this.element.style.width = this.size + 'px';
+                this.element.style.height = this.size + 'px';
+                this.element.style.borderRadius = '50%'; // Ettől lesz kör
+                this.element.style.boxShadow = '0 0 10px rgba(0,0,0,0.5)';
+            }
+
+            // Metódus: Pozíció frissítése és ütközésvizsgálat
+            update() {
+                this.x += this.speedX;
+                this.y += this.speedY;
+
+                // Pattogás a képernyő szélein
+                if (this.x + this.size >= window.innerWidth || this.x <= 0) {
+                    this.speedX = -this.speedX;
+                }
+                if (this.y + this.size >= window.innerHeight || this.y <= 0) {
+                    this.speedY = -this.speedY;
+                }
+
+                // Elem mozgatása a képernyőn
+                this.element.style.left = this.x + 'px';
+                this.element.style.top = this.y + 'px';
+            }
+        }
+
+        // Tömb a labdák tárolására
+        const circles = [];
+
+        // Véletlenszerű szín generáló függvény
+        function getRandomColor() {
+            const letters = '0123456789ABCDEF';
+            let color = '#';
+            for (let i = 0; i < 6; i++) {
+                color += letters[Math.floor(Math.random() * 16)];
+            }
+            return color;
+        }
+
+        // Kezdő labdák létrehozása
+        for (let i = 0; i < 10; i++) {
+            const size = Math.random() * 40 + 20; // 20-60px közötti méret
+            const x = Math.random() * (window.innerWidth - size);
+            const y = Math.random() * (window.innerHeight - size);
+            const speedX = (Math.random() - 0.5) * 10;
+            const speedY = (Math.random() - 0.5) * 10;
+            
+            const circle = new BouncingCircle(x, y, size, getRandomColor(), speedX, speedY);
+            circle.draw();
+            circles.push(circle);
+        }
+
+        // Animációs ciklus (Game Loop)
+        function animate() {
+            requestAnimationFrame(animate);
+            circles.forEach(circle => circle.update());
+        }
+
+        // Animáció indítása
+        animate();
+
+        // Extra interakció: Kattintásra új labda jön létre
+        window.addEventListener('click', (event) => {
+            const size = Math.random() * 40 + 20;
+            const speedX = (Math.random() - 0.5) * 15;
+            const speedY = (Math.random() - 0.5) * 15;
+            const newCircle = new BouncingCircle(event.clientX - size/2, event.clientY - size/2, size, getRandomColor(), speedX, speedY);
+            newCircle.draw();
+            circles.push(newCircle);
+        });
+    </script>
+</body>
+</html>

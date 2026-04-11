@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>React CRUD - Mozik</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #2196F3; color: white; }
+        .form-container { margin-bottom: 20px; padding: 15px; background: #e3f2fd; }
+        input { padding: 5px; margin-right: 10px; margin-bottom: 5px; }
+        button { padding: 5px 10px; cursor: pointer; margin-right: 5px; }
+    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+</head>
+<body>
+
+    <h2>React CRUD (Mozi adatok)</h2>
+    <a href="index.html">Vissza a főoldalra</a>
+    
+    <div id="root"></div>
+
+    <script>
+        const e = React.createElement;
+
+        // Kezdeti adatok a mozi.txt alapján
+        const initialData = [
+            { id: 1, nev: "A38 Hajó", irszam: "1113", cim: "Petőfi híd budai hídfő", telefon: "4643940" },
+            { id: 2, nev: "Bárka Kikötő a Ráday utcában", irszam: "1092", cim: "Ráday utca", telefon: "" },
+            { id: 3, nev: "Bem", irszam: "1024", cim: "Margit krt. 5/b.", telefon: "3168708" }
+        ];
+
+        function MoziApp() {
+            const [mozik, setMozik] = React.useState(initialData);
+            const [formData, setFormData] = React.useState({ id: '', nev: '', irszam: '', cim: '', telefon: '' });
+            const [isEdit, setIsEdit] = React.useState(false);
+
+            // Űrlap adatainak változása
+            const handleChange = (event) => {
+                const { name, value } = event.target;
+                setFormData(prev => ({ ...prev, [name]: value }));
+            };
+
+            // Mentés gomb (Create és Update)
+            const handleSave = () => {
+                if (!formData.nev || !formData.irszam || !formData.cim) {
+                    alert("Név, irszam és cím kötelező!");
+                    return;
+                }
+
+                if (isEdit) {
+                    setMozik(mozik.map(m => m.id === formData.id ? formData : m));
+                } else {
+                    const newId = moziData.length > 0 ? Math.max(...mozik.map(m => m.id)) + 1 : 1;
+                    setMozik([...mozik, { ...formData, id: newId }]);
+                }
+                handleClear();
+            };
+
+            // Törlés gomb
+            const handleDelete = (id) => {
+                if (confirm("Biztosan törlöd?")) {
+                    setMozik(mozik.filter(m => m.id !== id));
+                }
+            };
+
+            // Szerkesztés gomb
+            const handleEdit = (mozi) => {
+                setFormData(mozi);
+                setIsEdit(true);
+            };
+
+            // Űrlap ürítése
+            const handleClear = () => {
+                setFormData({ id: '', nev: '', irszam: '', cim: '', telefon: '' });
+                setIsEdit(false);
+            };
+
+            // Űrlap renderelése
+            const form = e('div', { className: 'form-container' },
+                e('h3', null, isEdit ? 'Mozi szerkesztése' : 'Új mozi hozzáadása'),
+                e('input', { type: 'text', name: 'nev', value: formData.nev, onChange: handleChange, placeholder: 'Név' }),
+                e('input', { type: 'text', name: 'irszam', value: formData.irszam, onChange: handleChange, placeholder: 'Irányítószám' }),
+                e('input', { type: 'text', name: 'cim', value: formData.cim, onChange: handleChange, placeholder: 'Cím' }),
+                e('input', { type: 'text', name: 'telefon', value: formData.telefon, onChange: handleChange, placeholder: 'Telefon' }),
+                e('button', { onClick: handleSave }, 'Mentés'),
+                e('button', { onClick: handleClear }, 'Mégse')
+            );
+
+            // Táblázat sorainak renderelése
+            const rows = mozik.map(mozi => 
+                e('tr', { key: mozi.id },
+                    e('td', null, mozi.id),
+                    e('td', null, mozi.nev),
+                    e('td', null, mozi.irszam),
+                    e('td', null, mozi.cim),
+                    e('td', null, mozi.telefon),
+                    e('td', null,
+                        e('button', { onClick: () => handleEdit(mozi) }, 'Szerkesztés'),
+                        e('button', { onClick: () => handleDelete(mozi.id) }, 'Törlés')
+                    )
+                )
+            );
+
+            const table = e('table', null,
+                e('thead', null, 
+                    e('tr', null, 
+                        e('th', null, 'ID'), e('th', null, 'Név'), e('th', null, 'Irszám'), e('th', null, 'Cím'), e('th', null, 'Telefon'), e('th', null, 'Műveletek')
+                    )
+                ),
+                e('tbody', null, rows)
+            );
+
+            return e('div', null, form, table);
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(e(MoziApp));
+    </script>
+</body>
+</html>

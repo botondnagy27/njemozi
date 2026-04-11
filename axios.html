@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="hu">
+<head>
+    <meta charset="UTF-8">
+    <title>Axios React CRUD</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        th { background-color: #9c27b0; color: white; }
+        .form-container { margin-bottom: 20px; padding: 15px; background: #f3e5f5; }
+        input { padding: 5px; margin-right: 5px; margin-bottom: 5px; }
+    </style>
+    <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <h2>React + Axios CRUD (Szerveroldali adatbázissal)</h2>
+    <a href="index.html">Vissza a főoldalra</a>
+    <div id="root" style="margin-top: 20px;"></div>
+
+    <script>
+        const e = React.createElement;
+        const API_URL = 'api.php';
+
+        function AxiosApp() {
+            const [mozik, setMozik] = React.useState([]);
+            const [formData, setFormData] = React.useState({ moziazon: '', mozinev: '', irszam: '', cim: '', telefon: '' });
+
+            const loadData = () => {
+                axios.get(API_URL).then(response => setMozik(response.data)).catch(err => console.error(err));
+            };
+
+            React.useEffect(() => { loadData(); }, []);
+
+            const handleChange = (event) => {
+                setFormData({ ...formData, [event.target.name]: event.target.value });
+            };
+
+            const handleSave = (isUpdate) => {
+                const method = isUpdate ? 'put' : 'post';
+                axios[method](API_URL, formData).then(() => {
+                    loadData();
+                    setFormData({ moziazon: '', mozinev: '', irszam: '', cim: '', telefon: '' });
+                });
+            };
+
+            const handleDelete = (id) => {
+                if(confirm('Törlöd?')) {
+                    axios.delete(`${API_URL}?id=${id}`).then(() => loadData());
+                }
+            };
+
+            const form = e('div', { className: 'form-container' },
+                e('input', { type: 'number', name: 'moziazon', value: formData.moziazon, onChange: handleChange, placeholder: 'Azonosító (ID)' }),
+                e('input', { type: 'text', name: 'mozinev', value: formData.mozinev, onChange: handleChange, placeholder: 'Név' }),
+                e('input', { type: 'number', name: 'irszam', value: formData.irszam, onChange: handleChange, placeholder: 'Irányítószám' }),
+                e('input', { type: 'text', name: 'cim', value: formData.cim, onChange: handleChange, placeholder: 'Cím' }),
+                e('input', { type: 'text', name: 'telefon', value: formData.telefon, onChange: handleChange, placeholder: 'Telefon' }),
+                e('br'),
+                e('button', { onClick: () => handleSave(false) }, 'Új hozzáadása'),
+                e('button', { onClick: () => handleSave(true), style: { marginLeft: '5px' } }, 'Meglévő frissítése')
+            );
+
+            const rows = mozik.map(mozi => 
+                e('tr', { key: mozi.moziazon },
+                    e('td', null, mozi.moziazon), e('td', null, mozi.mozinev), e('td', null, mozi.irszam), e('td', null, mozi.cim), e('td', null, mozi.telefon),
+                    e('td', null,
+                        e('button', { onClick: () => setFormData(mozi) }, 'Szerkesztőbe'),
+                        e('button', { onClick: () => handleDelete(mozi.moziazon) }, 'Törlés')
+                    )
+                )
+            );
+
+            const table = e('table', null,
+                e('thead', null, e('tr', null, e('th', null, 'ID'), e('th', null, 'Név'), e('th', null, 'Irszám'), e('th', null, 'Cím'), e('th', null, 'Telefon'), e('th', null, 'Műveletek'))),
+                e('tbody', null, rows)
+            );
+
+            return e('div', null, form, table);
+        }
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(e(AxiosApp));
+    </script>
+</body>
+</html>
